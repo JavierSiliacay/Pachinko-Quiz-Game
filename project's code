@@ -1,0 +1,249 @@
+/*
+  ------------------------------------------------------------------------------
+  © 2025 Javier Siliacay | USTP - All Rights Reserved.
+
+  This source code is the intellectual property of the author and is provided 
+  for educational and non-commercial use only. Unauthorized copying, modification, 
+  distribution, or use of this code for commercial purposes is strictly prohibited 
+  without prior written consent from the author.
+
+  Violation of these terms may result in legal action under applicable intellectual 
+  property laws.
+
+  For permissions, contact: siliacay.javier@ustp.edu.ph
+  ------------------------------------------------------------------------------
+*/
+
+#include <Servo.h>
+
+Servo servoMotor;
+
+const int playButton = 8;
+const int buttonA = 4;
+const int buttonB = 5;
+const int buttonC = 6;
+const int buttonD = 7;
+const int greenLED = 2;
+const int redLED = 3;
+
+char correctAnswer;
+bool waitingForAnswer = false;
+bool waitingForSlotInput = false;
+int selectedSlot = 0;
+
+void displayQ(const __FlashStringHelper* q, const __FlashStringHelper* opt1, const __FlashStringHelper* opt2, const __FlashStringHelper* opt3, const __FlashStringHelper* opt4, char ans);
+
+void setup() {
+  Serial.begin(9600);
+  servoMotor.attach(9);
+
+  pinMode(playButton, INPUT_PULLUP);
+  pinMode(buttonA, INPUT_PULLUP);
+  pinMode(buttonB, INPUT_PULLUP);
+  pinMode(buttonC, INPUT_PULLUP);
+  pinMode(buttonD, INPUT_PULLUP);
+  pinMode(greenLED, OUTPUT);
+  pinMode(redLED, OUTPUT);
+
+  digitalWrite(greenLED, LOW);
+  digitalWrite(redLED, LOW);
+
+  Serial.println(F("=== Pachinko Quiz Ball Ready ==="));
+}
+
+void loop() {
+  if (digitalRead(playButton) == LOW && !waitingForSlotInput) {
+    dropBall();
+    delay(3000);
+    Serial.println(F("Ball dropped."));
+    Serial.println(F("Host: Enter the slot number:"));
+    waitingForSlotInput = true;
+  }
+
+  if (waitingForSlotInput && Serial.available()) {
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+    int inputSlot = input.toInt();
+
+    if (inputSlot >= 1 && inputSlot <= 15) {
+      selectedSlot = inputSlot;
+      waitingForSlotInput = false;
+      showQuestion(selectedSlot);
+    } else {
+      Serial.println(F("❌ Invalid slot number. Try again (1–15)."));
+    }
+  }
+
+  if (waitingForAnswer) {
+    if (digitalRead(buttonA) == LOW) checkAnswer('A');
+    else if (digitalRead(buttonB) == LOW) checkAnswer('B');
+    else if (digitalRead(buttonC) == LOW) checkAnswer('C');
+    else if (digitalRead(buttonD) == LOW) checkAnswer('D');
+  }
+}
+
+void dropBall() {
+  servoMotor.write(180);
+  delay(1000);
+  servoMotor.write(90);
+}
+
+void checkAnswer(char userAns) {
+  if (userAns == correctAnswer) {
+    Serial.println(F("✅ Correct!"));
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(redLED, LOW);
+  } else {
+    Serial.println(F("❌ Wrong!"));
+    digitalWrite(redLED, HIGH);
+    digitalWrite(greenLED, LOW);
+  }
+  delay(4000);
+  digitalWrite(greenLED, LOW);
+  digitalWrite(redLED, LOW);
+  waitingForAnswer = false;
+}
+
+void showQuestion(int slot) {
+  Serial.print(F("Slot "));
+  Serial.print(slot);
+  Serial.println(F(" selected. Here's your question:"));
+
+  if (slot >= 1 && slot <= 5) showEasy(slot);
+  else if (slot >= 6 && slot <= 10) showAverage(slot);
+  else showDifficult(slot);
+
+  waitingForAnswer = true;
+}
+
+void showEasy(int slot) {
+  switch (slot) {
+    case 1:
+      displayQ(F("Which of the following statements is TRUE about waves?"),
+               F("A. Waves carry matter from one place to another"),
+               F("B. Waves carry energy from one place to another"),
+               F("C. Waves do not transfer anything"),
+               F("D. Waves stop when they reach a boundary"), 'B');
+      break;
+    case 2:
+      displayQ(F("In a transverse wave, particles of the medium move:"),
+               F("A. In circular motion"),
+               F("B. Back and forth in the same direction as the wave"),
+               F("C. At right angles to the direction of the wave"),
+               F("D. Not at all"), 'C');
+      break;
+    case 3:
+      displayQ(F("What is the distance between two consecutive crests in a wave?"),
+               F("A. Amplitude"),
+               F("B. Wavelength"),
+               F("C. Frequency"),
+               F("D. Period"), 'B');
+      break;
+    case 4:
+      displayQ(F("Which type of wave can travel through a vacuum?"),
+               F("A. Mechanical wave"),
+               F("B. Sound wave"),
+               F("C. Water wave"),
+               F("D. Electromagnetic wave"), 'D');
+      break;
+    case 5:
+      displayQ(F("The height of a wave from the rest position to the crest is called:"),
+               F("A. Frequency"),
+               F("B. Wavelength"),
+               F("C. Amplitude"),
+               F("D. Velocity"), 'C');
+      break;
+  }
+}
+
+void showAverage(int slot) {
+  switch (slot) {
+    case 6:
+      displayQ(F("Which of the following best describes a longitudinal wave?"),
+               F("A. The particles move up and down as the wave moves horizontally"),
+               F("B. The particles move in circular patterns"),
+               F("C. The particles vibrate parallel to the direction of wave motion"),
+               F("D. The wave moves faster in solids than in liquids"), 'C');
+      break;
+    case 7:
+      displayQ(F("Which of the following is an example of a mechanical wave?"),
+               F("A. X-ray"),
+               F("B. Sound wave"),
+               F("C. Radio wave"),
+               F("D. Microwave"), 'B');
+      break;
+    case 8:
+      displayQ(F("Which characteristic of a wave determines how loud a sound seems to be?"),
+               F("A. Wavelength"),
+               F("B. Frequency"),
+               F("C. Amplitude"),
+               F("D. Wave speed"), 'C');
+      break;
+    case 9:
+      displayQ(F("What happens to wave speed if the frequency is doubled while the wavelength stays the same?"),
+               F("A. It becomes zero"),
+               F("B. It is cut in half"),
+               F("C. It stays the same"),
+               F("D. It doubles"), 'D');
+      break;
+    case 10:
+      displayQ(F("Which statement correctly distinguishes between mechanical and electromagnetic waves?"),
+               F("A. Mechanical waves can travel through vacuum; electromagnetic waves cannot."),
+               F("B. Electromagnetic waves require a medium; mechanical waves do not."),
+               F("C. Mechanical waves require a medium to travel; electromagnetic waves can travel in vacuum."),
+               F("D. Both types of waves require air to propagate."), 'C');
+      break;
+  }
+}
+
+void showDifficult(int slot) {
+  switch (slot) {
+    case 11:
+      displayQ(F("A wave has a frequency of 5 Hz and a wavelength of 4 meters. What is the wave speed?"),
+               F("A. 1.25 m/s"),
+               F("B. 9 m/s"),
+               F("C. 20 m/s"),
+               F("D. 0.8 m/s"), 'C');
+      break;
+    case 12:
+      displayQ(F("How are energy and amplitude of a wave related?"),
+               F("A. Energy is equal to the amplitude"),
+               F("B. Energy is inversely proportional to amplitude"),
+               F("C. Energy is proportional to the square of the amplitude"),
+               F("D. Energy is not affected by amplitude"), 'C');
+      break;
+    case 13:
+      displayQ(F("If a wave travels 300 meters in 10 seconds, what is its speed?"),
+               F("A. 30 m/s"),
+               F("B. 3 m/s"),
+               F("C. 0.03 m/s"),
+               F("D. 3000 m/s"), 'A');
+      break;
+    case 14:
+      displayQ(F("What happens to the wavelength of a wave if the frequency increases but the speed stays constant?"),
+               F("A. Wavelength increases"),
+               F("B. Wavelength decreases"),
+               F("C. Wavelength becomes zero"),
+               F("D. Wavelength stays the same"), 'B');
+      break;
+    case 15:
+      displayQ(F("Which pair of characteristics is responsible for determining the energy carried by a wave?"),
+               F("A. Amplitude and wavelength"),
+               F("B. Frequency and velocity"),
+               F("C. Amplitude and frequency"),
+               F("D. Wavelength and wave speed"), 'C');
+      break;
+  }
+}
+
+void displayQ(const __FlashStringHelper* q, const __FlashStringHelper* opt1, const __FlashStringHelper* opt2, const __FlashStringHelper* opt3, const __FlashStringHelper* opt4, char ans) {
+  correctAnswer = ans;
+
+  Serial.println(F("Question:"));
+  Serial.println(q);
+  Serial.println(opt1);
+  Serial.println(opt2);
+  Serial.println(opt3);
+  Serial.println(opt4);
+  Serial.println(F("Press A, B, C, or D button to answer."));
+}
