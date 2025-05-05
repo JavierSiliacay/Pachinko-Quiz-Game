@@ -1,0 +1,42 @@
+Project Workflow: Pachinko Quiz Ball Game
+System Startup
+Initializes the servo motor, buttons, LEDs, and serial communication.
+
+Sets the initial states for the game.
+
+Button Handling
+Pressing the Play Button toggles between different game states (like dropping the ball and answering questions).
+
+If the button is pressed, the ball is dropped and the user is asked to input a slot number for the question.
+
+*Game Mode: Normal Mode
+Potentiometer Reading
+Reads the value from the potentiometer to control the LED brightness and speed.
+
+Green LED Blinking
+The green LED blinks based on the potentiometer value.
+
+Normal speed if the potentiometer value is less than or equal to 700.
+
+Faster blinking if the potentiometer value exceeds 700.
+
+Yellow LEDs Cycling
+Cycles through the 3 yellow LEDs every 700 milliseconds.
+
+Changes the brightness of the active LED based on the potentiometer value.
+
+Red LED & Buzzer Feedback
+If the mapped potentiometer value is equal to 255, the red LED turns on, and the buzzer sounds at 3500 Hz.
+
+If the mapped potentiometer value is equal to 0, the red LED turns off, and the buzzer and all yellow LEDs turn off.
+
+--------------------------------------------------------------------------------------------------------------------
+
+*Game Mode: Abnormal Mode
+All Alerts Activated
+In this mode, all LEDs (green, red, and yellow) are turned on at full brightness.
+
+The buzzer continuously sounds at 4000 Hz.
+
+Mode Reset / Toggle
+Pressing the button again will toggle between Normal Mode and Abnormal Mode, depending on the current game state.
